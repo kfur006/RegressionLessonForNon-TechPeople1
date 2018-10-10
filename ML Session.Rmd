@@ -1,0 +1,173 @@
+---
+title: "ML Session Linear Regression"
+author: "Ken"
+date: "23 September 2018"
+output:
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Some Info
+I am teaching a course of Fundamentals of Data Visualisation and Statistical Analysis so if you are interested, have a look and ask your manager!
+http://www.coe.auckland.ac.nz/
+
+# Linear Regression
+Machine learning uses the similar concept but just more complicated and cooler so before we start recognising faces, let's understand some concept!
+
+The main uses of linear regression are:
+* Prediction
+* Find a relationship between response and explanatory variables
+
+## Equation
+$$ y = intercept +  \beta_1 x_1 + ... + \beta_n x_n  + \epsilon $$
+$intercept$ is the value when the explanatory Variable is 0. Thus it could be meaningless value when 0 is not appropriate. $\beta$ is the "impact towards y" by having the explanatory variables. And $\epsilon$ is the random variation in the data.
+
+Basically, what it does is finding a line that produce the minimum error in the data set then finding the algebra equation for that line.
+
+
+
+## Advertise Data revisited
+Let's go back to Daniel's example to understand the linear regression.
+
+```{r message = F }
+Sales.df <- read.csv(file.choose(), header = T) #Load Sales.csv data
+head(Sales.df) #Fisrt few rows
+tail(Sales.df) #Last few rows
+```
+
+These codes above are equivalent to the code below in Python.
+```{}
+import pandas as pd
+SalesPyth = pd.read_csv('~/advertising.csv', index_col=0)
+SalesPyth.head() # display the first 5 rows
+SalesPyth.tail() # display the first 5 rows
+```
+
+## Initial Plots
+First of all, we check is there are any relationship between Sales and Advertisement.
+Remember, if there is no relationship, we cannot predict anything.
+
+```{r Sales.df, echo=T}
+plot(Sales~Total.Adv, data = Sales.df,
+     main = "Sales VS Total Money Spent on Adv", #Title of plot
+     ylab = "Sales", # y label
+     xlab = "Total Money Spent" # x label
+     )
+```
+
+Seems the more they spent on Advertisement, the more Sales they can expect.
+
+## First Analysis
+Let's create a model like the one below to explain the relationship between Sale and Advertisement.
+
+$$ y = intercept + \beta_{Adv} x_{Adv} + \epsilon $$
+$\beta_{Adv}$ shows the degree of "impact" of advertisement and $x_{Adv}$ represents the amount of money spent on Advertisement.
+
+```{r echo=T}
+Sales.lm <- lm(Sales~Total.Adv, data = Sales.df)
+summary(Sales.lm)
+```
+
+$R^2$ value for this model is `r summary(Sales.lm)$r.squared ` which means we can explain about 75% of sales variation by Total Money Spent on Adv.
+
+Let's see how it looks like in the original plot!
+
+```{r echo=T}
+plot(Sales~Total.Adv , data = Sales.df,
+     main = "Sales VS Total Money Spent on Adv", #Title of plot
+     ylab = "Sales", # y label
+     xlab = "Total Money Spent" # x label
+)
+points(predict(Sales.lm, newdata = data.frame(Total.Adv = sort(Sales.df$Total.Adv)))~sort(Sales.df$Total.Adv),
+              lwd = 2, col = "red")
+```
+
+What do you think?
+
+## Add more explanatory variables (attributes)
+We know that the impact of advertise differs depending on the platform... like below!
+
+```{r echo = F}
+plot(Sales~TV , data = Sales.df,
+     main = "Sales VS Total Money Spent on TV Adv", #Title of plot
+     ylab = "Sales", # y label
+     xlab = "Total Money Spent on TV" # x label
+)
+
+plot(Sales~Radio , data = Sales.df,
+     main = "Sales VS Total Money Spent on Radio Adv", #Title of plot
+     ylab = "Sales", # y label
+     xlab = "Total Money Spent on Radio" # x label
+)
+
+plot(Sales~Newspaper , data = Sales.df,
+     main = "Sales VS Total Money Spent on Newspaper Adv", #Title of plot
+     ylab = "Sales", # y label
+     xlab = "Total Money Spent on Newspaper" # x label
+)
+```
+
+```{r echo = T}
+pairs(Sales.df)
+```
+
+Or we can do something like this too.
+
+```{r echo = T, message = F}
+library(s20x)
+pairs20x(Sales.df)
+```
+
+## Fit a new model?
+Maybe we can feed some detailed information to the model?
+
+```{r echo = T}
+Sales.lm2 <- lm(Sales~ TV + Radio + Newspaper, data = Sales.df) # Modeling part
+summary(Sales.lm2) # Show result of the model
+```
+
+Since we the result shows Newpaper do not add any significant impact towards the sales, we can drop it from our morel!
+
+```{r echo = T}
+Sales.lm2 <- lm(Sales~ TV + Radio, data = Sales.df) # Modeling part
+summary(Sales.lm2) # Show result of the model
+```
+
+$R^2$ value for this model is `r summary(Sales.lm2)$r.squared ` which means we can explain about 90% of sales variation by TV and Radio Adv!
+
+Slightly better?
+
+Let's see how it looks like in the plot!
+
+```{r echo = F}
+plot(Sales~Total.Adv , data = Sales.df,
+     main = "Sales VS Total Money Spent on Adv", #Title of plot
+     ylab = "Sales", # y label
+     xlab = "Total Money Spent" # x label
+)
+points(predict(Sales.lm2, newdata = Sales.df[, c(1,2)])~Sales.df$Total.Adv, lwd = 2, col = "blue")
+```
+
+Not bad, right?
+
+## Adv and Disadv
+The advantages of LR:
+
+* Easy to use
+* Can explain relationship well
+* Can predict well time to time
+
+The disadvantages of LR:
+
+* Not easy to read the output
+* Constrained by a p-value (well, not even one but many of them!)
+* Model can be very complicated (quadratic term, transformation, and etc...)
+
+
+
+
+
